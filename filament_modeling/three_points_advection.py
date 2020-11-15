@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 # GEOMETRY ------------------------------------------------------
 dt = 0.1 # Time increment
-Nt = 30 # number of time steps
+Nt = 31 # number of time steps
 
 dx = 1 # Spatial increment
 Nx = 100 # Number of horizontal steps
@@ -75,5 +75,7 @@ for k in range (0, Nt-1):
 
 plt.plot(x_grid, F[:,1], label= 't=0')
 plt.plot(x_grid, F[:,11], label= 't=10')
+plt.plot(x_grid, F[:,21], label= 't=20')
+plt.plot(x_grid, F[:,31], label= 't=30')
 plt.legend()
 plt.show()
