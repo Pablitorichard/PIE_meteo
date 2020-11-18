@@ -2,15 +2,15 @@
 """
 Spyder Editor
 
-Three time points semi-Lagrangian scheme in 2D. 
-Corresponds to Section 2b of Staniforth.
+Two time points semi-Lagrangian scheme in 2D. 
+Corresponds to Section 2c of Staniforth.
 """
 
 import numpy as np
 import scipy.interpolate as interpolate
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-import time
+
 
 # GEOMETRY ------------------------------------------------------
 dt = 0.1 # Time increment
@@ -20,8 +20,8 @@ Nt = 31 # number of time steps
 Lx = 100 # Zonal length of the domain 
 Ly = 100 # Meridional length of the domain
 
-Nx = 300 # Number of zonal points.
-Ny = 300 # Number of meridional points.
+Nx = 500 # Number of zonal points.
+Ny = 500 # Number of meridional points.
 
 dx = Lx/Nx # Zonal resolution
 dy = Ly/Ny # Meridional resolution
@@ -74,17 +74,15 @@ U = 10*np.ones((2,Nx,Ny,Nt)) # Array of velocities. The velocity is uniform
 # in time and space. 
 # U[0,:,:,:] -> zonal wind ; U[1,:,:,:] -> meridional wind
 
-# distort_x = np.cos(2*np.pi*X_grid/Lx)
-# distort_x = np.repeat(distort_x[:, :, np.newaxis], Nt, axis=2)
-# distort_y = np.sin(2*np.pi*Y_grid/Ly)
-# distort_y = np.repeat(distort_y[:, :, np.newaxis], Nt, axis=2)
-# U[0,:,:,:] =U[0,:,:,:] * distort_x 
-# U[1,:,:,:] =U[1,:,:,:] * distort_y
-
-
+distort_x = np.cos(2*np.pi*X_grid/Lx)
+distort_x = np.repeat(distort_x[:, :, np.newaxis], Nt, axis=2)
+distort_y = np.sin(2*np.pi*Y_grid/Ly)
+distort_y = np.repeat(distort_y[:, :, np.newaxis], Nt, axis=2)
+U[0,:,:,:] =U[0,:,:,:] * distort_x 
+U[1,:,:,:] =U[1,:,:,:] * distort_y
 # LOOP ----------------------------------------------------------
 
-t0 = time.time()
+
 for k in range (0, Nt-1):
     
     #   INSERT PSEUDO SPECTRAL FUNCTION WHICH TAKES F AND SEND U[k]
@@ -95,13 +93,13 @@ for k in range (0, Nt-1):
     alpha [0,:,:,k+1] = dt * interpolate.griddata( (X_grid.flatten(),
                                     Y_grid.flatten()), U[0,:,:,k].flatten(), 
                                     (X_grid - alpha[0,:,:,k], 
-                                    Y_grid - alpha[1,:,:,k]), method='cubic',
+                                    Y_grid - alpha[1,:,:,k]), method ='cubic',
                                     fill_value = 0) 
     
     alpha [1,:,:,k+1] = dt * interpolate.griddata((X_grid.flatten(),
                                     Y_grid.flatten()), U[1,:,:,k].flatten(),
                                     (X_grid - alpha[0,:,:,k], 
-                                    Y_grid - alpha[1,:,:,k]), method='cubic',
+                                    Y_grid - alpha[1,:,:,k]), method = 'cubic',
                                     fill_value = 0) 
     
     #F at time tk+ 2*dt is udpated by interpolating F at time tk at the 
@@ -109,12 +107,10 @@ for k in range (0, Nt-1):
     F [:,:,k+2] = interpolate.griddata( (X_grid.flatten(), Y_grid.flatten()) ,
                                     F [:,:,k].flatten(), 
                                     (X_grid - 2*alpha[0,:,:,k+1], 
-                                    Y_grid - 2*alpha[1,:,:,k+1]), method='cubic',
-                                    fill_value = 0) 
+                                    Y_grid - 2*alpha[1,:,:,k+1]),fill_value = 0) 
     
     
-cpu_time = time.time() - t0 
-print(cpu_time)
+    
 # # DISPLAY -------------------------------------------------------
 fig, (( ax_t0, ax_t10,), (ax_t20, ax_t30)) =  plt.subplots(nrows=2, ncols =2,
                                                         figsize=[6.8/0.8,6.8])
