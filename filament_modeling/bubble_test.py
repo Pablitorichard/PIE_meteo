@@ -24,13 +24,13 @@ from create_netcdf import create_netcdf
 
 def bubble_test(path, Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm):
     
-    handle = create_netcdf(path, Lx, Ly, Nx, Ny)
-    
+    handle = create_netcdf(path, Lx, Ly,T,  Nx, Ny, Nt)
+    print("netcdf created")
 #ATTRIBUTES -------------------------------------------------------------------
 
     handle.T = T
     handle.dt = T/Nt
-
+    handle.Nt = Nt
 #------------------------------------------------------------------------------
 
 #INITIALIZATION ---------------------------------------------------------------
@@ -46,13 +46,17 @@ def bubble_test(path, Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm):
     handle['theta_t'][:,:,1] = F
     
     #Initial displacement guess for advection
-    handle['alpha'][:,:,0] = np.zeros((Nx,Ny))
+    handle['alpha_u'][:,:,0] = np.zeros((Nx,Ny))
+    handle['alpha_v'][:,:,0] = np.zeros((Nx,Ny))
     
     #Uniform wind
-    u = wind_norm/np.sqrt(2)
-    handle['ut'][:,:,Nt] = u * np.ones((Nx,Ny))
-    handle['vt'][:,:,Nt] = u * np.ones((Nx,Ny))
+    u = wind_norm/np.sqrt(handle.dx**2+handle.dy**2)
+    handle['ut'][:,:,0] = u * np.ones((Nx,Ny))
+    handle['vt'][:,:,0] = u * np.ones((Nx,Ny))
     
+    #time storage
+    handle['t'][0] = 0
+    handle['t'][1] = dt
 #------------------------------------------------------------------------------
     
     handle.close()

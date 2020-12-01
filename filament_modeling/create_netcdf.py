@@ -22,7 +22,7 @@ from netCDF4 import Dataset
 
 #------------------------------------------------------------------------------
 
-def create_netcdf(path, Lx, Ly, Nx, Ny):
+def create_netcdf(path, Lx, Ly, T, Nx, Ny, Nt):
 
 #CREATION OF THE NETCDF FILE --------------------------------------------------
 
@@ -33,19 +33,22 @@ def create_netcdf(path, Lx, Ly, Nx, Ny):
 
 #DIMENSIONS -------------------------------------------------------------------
 
-    handle.createDimension("Nx",Nx)
-    handle.createDimension("Ny",Ny)
-    handle.createDimension("Nt",None) 
-    # The dimension Nt is 'unlimited' which means it can grow during the 
-    # problem at each time step. Its initial value will be set during the 
-    # initialization.
+    handle.createDimension("Nx", Nx)
+    handle.createDimension("Ny", Ny)
+    handle.createDimension("Nt", None) 
+
 #------------------------------------------------------------------------------
 
 #ATTRIBUTE --------------------------------------------------------------------
+    handle.T = T    
     handle.Lx = Lx
     handle.Ly = Ly
+    handle.Nx = Nx
+    handle.Ny = Ny
+    handle.Nt = Nt
     handle.dx = Lx / Nx
     handle.dy = Ly/ Ny  
+    handle.dt = T/Nt
 #------------------------------------------------------------------------------
 
 #VARIABLES --------------------------------------------------------------------
@@ -53,7 +56,8 @@ def create_netcdf(path, Lx, Ly, Nx, Ny):
     handle.createVariable("ut","f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("vt", "f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("theta_t", "f8",("Nx", "Ny", "Nt"))
-    handle.createVariable("alpha", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("alpha_u", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("alpha_v", "f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("t", "f8", ("Nt"))
     handle.createVariable("x_grid", "f8", ("Nx", "Ny"))
     handle.createVariable("y_grid", "f8", ("Nx", "Ny"))
