@@ -13,7 +13,7 @@ import matplotlib.cm as cm
 import time
 from bubble_test import bubble_test
 from netCDF4 import Dataset
-
+from drawnow import drawnow, figure
 # My cocktail to make path stuff work in Python
 from pathlib import Path
 import os
@@ -31,16 +31,15 @@ Nx = 256
 Ny = 128
 dt = 30
 
-T = 1*900
+T = 1*300
 #T =48*3600
 Nt = T//dt
 
 cx = 500
 cy = 500
 radius = 100
-wind_norm = 15
-bubble_test("out.nc", Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm)
-print("init done")
+wind_norm = 5
+
 
 ratio_x = Nx//10 # 1 arrow every <ratio> point
 ratio_y = Ny//10
@@ -51,7 +50,7 @@ def three_points_advection(path, pseudo_spectral_wind):
     handle = Dataset(path, 'r+',format='NETCDF4')  
     Nt = handle.Nt
     dt = handle.dt
-    ut_minus = handle['ut'][:,:,0]
+    ut_minus = handle['ut'][:,:,0]  
     vt_minus = handle['vt'][:,:,0]
     x_grid = handle['x_grid'][:,:]
     y_grid = handle['y_grid'][:,:]
@@ -61,7 +60,7 @@ def three_points_advection(path, pseudo_spectral_wind):
     theta = handle['theta_t'][:,:,1]
     t0 = time.time()
     for k in range (1, Nt):
-        
+        print("Progress: ",round(100*k/Nt,2)," %")
         #Update of the tropopause wind
         if (pseudo_spectral_wind == True):
             #function taking theta as input and returning ut, vt
@@ -74,24 +73,24 @@ def three_points_advection(path, pseudo_spectral_wind):
         alpha_u = dt * interpolate.griddata( 
             (x_grid.flatten(), y_grid.flatten()),ut.flatten(),
             (x_grid - alpha_u_minus, y_grid - alpha_v_minus),
-             method='cubic', fill_value = 0) 
+             method='linear', fill_value = 0) 
         
         alpha_v = dt * interpolate.griddata( 
             (x_grid.flatten(), y_grid.flatten()), vt.flatten(),
             (x_grid - alpha_u_minus, y_grid - alpha_v_minus),
-             method='cubic', fill_value = 0)
+             method='linear', fill_value = 0)
         
         # theta_t at time tk+ 2*dt is udpated by interpolating F at time tk at the 
         # locations x - 2* alpha
         theta_plus = interpolate.griddata(
             (x_grid.flatten(), y_grid.flatten()), theta_minus.flatten(),
             (x_grid - 2*alpha_u, y_grid - 2*alpha_v),
-            method='cubic', fill_value = 0) 
+            method='linear', fill_value = 0) 
         
         # Write new quantitiesto netCDF
         handle['alpha_u'][:,:,k] = alpha_u
         handle['alpha_v'][:,:,k] = alpha_v
-        handle['theta_t'][:,:,k+1] = theta_plus
+        handle['theta_t'][:,:,k+1] = theta_plus 
         handle['ut'][:,:,k] = ut
         handle['vt'][:,:,k] = vt
         handle['t'][k+1] = handle ['t'][k] + dt 
@@ -103,14 +102,16 @@ def three_points_advection(path, pseudo_spectral_wind):
         theta = theta_plus
         ut_minus = ut
         vt_minus = vt
-        
     cpu_time = time.time() - t0 
     print("CPU time = ",cpu_time," seconds")
     handle.close()
 
-three_points_advection(path, 0)
+
 
 # # DISPLAY -------------------------------------------------------
+
+    
+
 
 def ugly_plot(path, ratio_x, ratio_y):
     # UNPACK
@@ -124,13 +125,13 @@ def ugly_plot(path, ratio_x, ratio_y):
     y_grid = handle['y_grid'][:,:]
     X_coord = x_grid[:,0]
     Y_coord = y_grid[0,:]
-  
-    
+
     # DISPLAY
     fig, (( ax_t0, ax_t1,), (ax_t2, ax_t3)) =  plt.subplots(nrows=2, ncols =2,
                                                             figsize=[6.8/0.8,6.8])
-    im_t0 = ax_t0.pcolormesh(x_grid, y_grid, handle['theta_t'][:,:,1],
-                             cmap=cm.binary)
+
+    ax_t0.pcolormesh(x_grid, y_grid,handle['theta_t'][:,:,1],
+                             cmap=cm.gist_yarg)
     ax_t0.quiver(X_coord[0:Nx:ratio_x], Y_coord[0:Ny:ratio_y],
                   handle['ut'][0:Nx:ratio_x, 0:Ny:ratio_y, 0],
                   handle['vt'][0:Nx:ratio_x, 0:Ny:ratio_y, 0],
@@ -138,9 +139,9 @@ def ugly_plot(path, ratio_x, ratio_y):
     t0_label = 't = '+ str(handle['t'][1])
     ax_t0.set_xlabel(t0_label)
     
-    
+
     ax_t1.pcolormesh(x_grid, y_grid, handle['theta_t'][:,:,Nt//3],
-                     cmap=cm.binary)
+                     cmap=cm.gist_yarg)
     ax_t1.quiver(X_coord[0:Nx:ratio_x], Y_coord[0:Ny:ratio_y],
                   handle['ut'][0:Nx:ratio_x, 0:Ny:ratio_y, Nt//3-1],
                   handle['vt'][0:Nx:ratio_x, 0:Ny:ratio_y, Nt//3-1],
@@ -148,8 +149,10 @@ def ugly_plot(path, ratio_x, ratio_y):
     t1_label = 't = '+ str(handle['t'][Nt//3])
     ax_t1.set_xlabel(t1_label)
     
-    ax_t2.pcolormesh(x_grid, y_grid, handle['theta_t'][:,:,2*Nt//3],
-                     cmap=cm.binary)
+    
+
+    ax_t2.pcolormesh(x_grid, y_grid,handle['theta_t'][:,:,2*Nt//3],
+                     cmap=cm.gist_yarg)
     ax_t2.quiver(X_coord[0:Nx:ratio_x], Y_coord[0:Ny:ratio_y],
                   handle['ut'][0:Nx:ratio_x, 0:Ny:ratio_y, 2*Nt//3-1],
                   handle['vt'][0:Nx:ratio_x, 0:Ny:ratio_y, 2*Nt//3-1],
@@ -157,8 +160,10 @@ def ugly_plot(path, ratio_x, ratio_y):
     t2_label = 't = '+ str(handle['t'][2*Nt//3])
     ax_t2.set_xlabel(t2_label)
     
-    ax_t3.pcolormesh(x_grid, y_grid, handle['theta_t'][:,:,Nt],
-                     cmap=cm.binary)
+    
+
+    im_t3=ax_t3.pcolormesh(x_grid, y_grid ,handle['theta_t'][:,:,Nt],
+                     cmap=cm.gist_yarg)
     ax_t3.quiver(X_coord[0:Nx:ratio_x], Y_coord[0:Ny:ratio_y],
                   handle['ut'][0:Nx:ratio_x, 0:Ny:ratio_y, Nt-1],
                   handle['vt'][0:Nx:ratio_x, 0:Ny:ratio_y, Nt-1],
@@ -169,8 +174,11 @@ def ugly_plot(path, ratio_x, ratio_y):
     plt.tight_layout()
     fig.subplots_adjust(right=0.8)
     cbar_ax = fig.add_axes([0.85, 0.10, 0.05, 0.7])
-    fig.colorbar(im_t0, cax=cbar_ax)
+    fig.colorbar(im_t3, cax=cbar_ax)
     handle.close()
     plt.show()
     
+    
+bubble_test("out.nc", Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm)
+three_points_advection(path, 0)
 ugly_plot(path, ratio_x,ratio_y)
