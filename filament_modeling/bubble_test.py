@@ -6,11 +6,10 @@ Created on Wed Nov 18 18:34:12 2020
 """
 #LIBRARY ----------------------------------------------------------------------
 
-# My cocktail to make path stuff work in Python
+# Path handling
 from pathlib import Path
 import os
 import inspect
-# Path to 
 self_path = Path(os.path.dirname(inspect.getfile(lambda: None)))
 
 #Other libraries
@@ -22,10 +21,10 @@ from create_netcdf import create_netcdf
 
 #------------------------------------------------------------------------------
 
+
 def bubble_test(path, Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm):
     
     handle = create_netcdf(path, Lx, Ly,T,  Nx, Ny, Nt)
-    print("netcdf created")
 #ATTRIBUTES -------------------------------------------------------------------
 
     handle.T = T
@@ -51,7 +50,6 @@ def bubble_test(path, Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm):
     
     #Uniform wind
     u = wind_norm/np.sqrt(handle.dx**2+handle.dy**2)
-    print(u)
     handle['ut'][:,:,0] = u * np.ones((Nx,Ny))
     handle['vt'][:,:,0] = u * np.ones((Nx,Ny))
     
@@ -63,22 +61,4 @@ def bubble_test(path, Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm):
     handle.close()
     
 #------------------------------------------------------------------------------
-    
-# Lx = 2048
-# Ly = 1024
-# Nx = 256
-# Ny = 128
-# dt = 30
-
-# T = 48*3600
-# Nt = T//30
-
-# cx = 500
-# cy = 500
-# radius = 100
-# wind_norm = 15
-
-
-
-
-#bubble_test("out.nc", Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm)
+   
