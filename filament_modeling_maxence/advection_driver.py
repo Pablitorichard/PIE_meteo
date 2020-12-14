@@ -17,6 +17,7 @@ from drawnow import drawnow, figure
 
 from bubble_test import bubble_test
 from advection_step_3P import advection_step_3P 
+from spectral import streamfunc, geostwind
 
 
 
@@ -27,6 +28,10 @@ def advection_driver(path, pseudo_spectral_wind):
     handle = Dataset(path, 'r+',format='NETCDF4')  
     Nt = handle.Nt
     dt = handle.dt
+    Lx = handle.Lx
+    Ly = handle.Ly
+    Nx = handle.Nx
+    Ny = handle.Ny
     ut_minus = handle['ut'][:,:,0]  
     vt_minus = handle['vt'][:,:,0]
     x_grid = handle['x_grid'][:,:]
@@ -41,8 +46,8 @@ def advection_driver(path, pseudo_spectral_wind):
         
         # UPDATE OF THE TROPOPAUSE WIND---------------------------------
         if (pseudo_spectral_wind == True):
-            #function taking theta as input and returning ut, vt
-            print('no pseudo spectral function yet, ut,vt kept contants')
+            psi = streamfunc(Lx, Ly, Nx, Ny, theta)
+            ut,vt = geostwind(Lx, Ly, Nx, Ny, psi)
         else:
             ut = ut_minus
             vt = vt_minus
