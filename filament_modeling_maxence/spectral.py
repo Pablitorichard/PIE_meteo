@@ -15,7 +15,7 @@ def streamfunc(a,b,Pa,Pb,thetatp,z=0):
     wavevect = np.array([[(2*np.pi*m,2*np.pi*n) for n in freqy] for m in freqx])
     
     N = Ns if z>0 else Nt
-    psihat = thetatphat.copy()
+    psihat = thetatphat
     for m in range(Pa):
         for n in range(Pb):
             K = np.linalg.norm(wavevect[m,n])
