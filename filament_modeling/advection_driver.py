@@ -5,24 +5,20 @@ Created on Wed Dec  9 11:31:54 2020
 @author: 33676
 """
 
-import numpy as np
-import scipy.interpolate as interpolate
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import time
 from netCDF4 import Dataset
-from drawnow import drawnow, figure
 # My cocktail to make path stuff work in Python
 
 
-from bubble_test import bubble_test
+from test_cases import bubble_test, gaussian_test, v_stripe_test
 from advection_step_3P import advection_step_3P 
 from spectral import streamfunc, geostwind
 
 
 
 
-def advection_driver(path, pseudo_spectral_wind):
+def advection_driver(path, pseudo_spectral_wind=1, 
+                     alpha_method = 'mix', F_method='bicubic'):
     
     #UNPACK DATA ------------------------------------------------
     handle = Dataset(path, 'r+',format='NETCDF4')  
@@ -32,6 +28,8 @@ def advection_driver(path, pseudo_spectral_wind):
     Ly = handle.Ly
     Nx = handle.Nx
     Ny = handle.Ny
+    dx=handle.dx
+    dy=handle.dx
     ut_minus = handle['ut'][:,:,0]  
     vt_minus = handle['vt'][:,:,0]
     x_grid = handle['x_grid'][:,:]
@@ -47,17 +45,26 @@ def advection_driver(path, pseudo_spectral_wind):
         # UPDATE OF THE TROPOPAUSE WIND---------------------------------
         if (pseudo_spectral_wind == True):
             psi = streamfunc(Lx, Ly, Nx, Ny, theta)
-            ut,vt = geostwind(Lx, Ly, Nx, Ny, psi)
+            vt,ut = geostwind(Lx, Ly, Nx, Ny, psi)
+           
         else:
             ut = ut_minus
-            vt = vt_minus
+            vt = vt_minus 
         #---------------------------------------------------------------
+                
         
         #ADVECTION AT THE TROPOPAUSE------------------------------------
         alpha_u, alpha_v, theta_plus = \
         advection_step_3P(alpha_u_minus, alpha_v_minus,theta_minus,
-                          dt, ut, vt, x_grid, y_grid)
+                          dt, ut, vt, dx, dy, alpha_method = alpha_method,
+                          F_method=F_method)
         #---------------------------------------------------------------
+        
+        
+        
+        
+        
+        
         
         
         # Write new quantities to netCDF

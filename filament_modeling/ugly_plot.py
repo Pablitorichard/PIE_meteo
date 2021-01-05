@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from netCDF4 import Dataset
+import numpy as np
+from matplotlib.ticker import MaxNLocator
 
-def ugly_plot(path, ratio_x, ratio_y):
-    # UNPACK
-    #UNPACK DATA ------------------------------------------------
+def ugly_plot(path, lvl_num=5, colormap='Greys', ratio=8):
+    
+    #Unpack NetCDF
     handle = Dataset(path, 'r+',format='NETCDF4')  
     Nt = handle.Nt
     dt = handle.dt
@@ -12,57 +13,89 @@ def ugly_plot(path, ratio_x, ratio_y):
     Ny = handle.Ny
     x_grid = handle['x_grid'][:,:]
     y_grid = handle['y_grid'][:,:]
-    X_coord = x_grid[:,0]
-    Y_coord = y_grid[0,:]
-
-    # DISPLAY
-    fig, (( ax_t0, ax_t1,), (ax_t2, ax_t3)) =  plt.subplots(nrows=2, ncols =2,
-                                                            figsize=[6.8/0.8,6.8])
-
-    ax_t0.pcolormesh(x_grid, y_grid,handle['theta_t'][:,:,1],
-                             cmap=cm.gist_yarg)
-    ax_t0.quiver(X_coord[0:Nx:ratio_x], Y_coord[0:Ny:ratio_y],
-                  handle['ut'][0:Nx:ratio_x, 0:Ny:ratio_y, 0],
-                  handle['vt'][0:Nx:ratio_x, 0:Ny:ratio_y, 0],
-                  color='b', width=0.003)
-    t0_label = 't = '+ str(handle['t'][1])
+    X = x_grid[:,0]
+    Y = y_grid[0,:]
+    
+    # Create figure
+    fig, (( ax_t0, ax_t1, ax_t2), (ax_t3, ax_t4,ax_t5)) =  \
+        plt.subplots(nrows=2, ncols =3)
+    
+    # Potential temperature plot
+    F=handle['theta_t'][:,:,1]
+    lvl=MaxNLocator(nbins=lvl_num).tick_values(F.min(), F.max())       
+    im_t0=ax_t0.contourf(F.T,cmap=colormap,levels=lvl)
+    t0_label = 't = '+ str(round(handle['t'][0]/3600,3)) + " h"
     ax_t0.set_xlabel(t0_label)
     
-
-    ax_t1.pcolormesh(x_grid, y_grid, handle['theta_t'][:,:,Nt//3],
-                     cmap=cm.gist_yarg)
-    ax_t1.quiver(X_coord[0:Nx:ratio_x], Y_coord[0:Ny:ratio_y],
-                  handle['ut'][0:Nx:ratio_x, 0:Ny:ratio_y, Nt//3-1],
-                  handle['vt'][0:Nx:ratio_x, 0:Ny:ratio_y, Nt//3-1],
-                  color='b', width=0.003)
-    t1_label = 't = '+ str(handle['t'][Nt//3])
+    F=handle['theta_t'][:,:,Nt//2]
+    lvl=MaxNLocator(nbins=lvl_num).tick_values(F.min(), F.max())       
+    ax_t1.contourf(F.T,cmap=colormap,levels=lvl)
+    t1_label = 't = '+ str(round(handle['t'][Nt//2]/3600,3)) + " h"
     ax_t1.set_xlabel(t1_label)
-    
-    
-
-    ax_t2.pcolormesh(x_grid, y_grid,handle['theta_t'][:,:,2*Nt//3],
-                     cmap=cm.gist_yarg)
-    ax_t2.quiver(X_coord[0:Nx:ratio_x], Y_coord[0:Ny:ratio_y],
-                  handle['ut'][0:Nx:ratio_x, 0:Ny:ratio_y, 2*Nt//3-1],
-                  handle['vt'][0:Nx:ratio_x, 0:Ny:ratio_y, 2*Nt//3-1],
-                  color='b', width=0.003)
-    t2_label = 't = '+ str(handle['t'][2*Nt//3])
+   
+    F=handle['theta_t'][:,:,Nt-1]
+    lvl=MaxNLocator(nbins=lvl_num).tick_values(F.min(), F.max())       
+    ax_t2.contourf(F.T,cmap=colormap,levels=lvl)
+    t2_label = 't = '+ str(round(handle['t'][Nt]/3600,3)) + " h"
     ax_t2.set_xlabel(t2_label)
     
+    #Velocity plots
+    Xr = X[0:Nx:Nx//ratio]
+    Yr = Y[0:Ny:Ny//ratio]
     
-
-    im_t3=ax_t3.pcolormesh(x_grid, y_grid ,handle['theta_t'][:,:,Nt],
-                     cmap=cm.gist_yarg)
-    ax_t3.quiver(X_coord[0:Nx:ratio_x], Y_coord[0:Ny:ratio_y],
-                  handle['ut'][0:Nx:ratio_x, 0:Ny:ratio_y, Nt-1],
-                  handle['vt'][0:Nx:ratio_x, 0:Ny:ratio_y, Nt-1],
-                  color='b', width=0.003)
-    t3_label = 't = '+ str(handle['t'][Nt-1 ])
-    ax_t3.set_xlabel(t3_label)
+    #Fetch velocity components and their norm
+    U = handle['ut'][:,:,1]
+    V = handle['vt'][:,:,1]
+    N = np.sqrt(U**2 + V**2)
+    #Take a subset and transpose for quiver.
+    Ur =U[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    Vr = V[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    Nr = N[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    # Normalize the arrows to just get a readable direction
+    Ur = np.divide(Ur,Nr)
+    Vr = np.divide(Vr,Nr)
+    #Plot
+    im_t3 = ax_t3.pcolormesh(x_grid, y_grid, N)
+    ax_t3.quiver(Xr, Yr, Ur,Vr, width=0.002, color='w')
     
+    
+    #Fetch velocity components and their norm
+    U = handle['ut'][:,:,Nt//2]
+    V = handle['vt'][:,:,Nt//2]
+    N = np.sqrt(U**2 + V**2)
+    #Take a subset and transpose for quiver.
+    Ur =U[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    Vr = V[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    Nr = N[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    # Normalize the arrows to just get a readable direction
+    Ur = np.divide(Ur,Nr)
+    Vr = np.divide(Vr,Nr)
+    #Plot
+    im_t4 = ax_t4.pcolormesh(x_grid, y_grid, N)
+    ax_t4.quiver(Xr, Yr, Ur,Vr, width=0.002, color='w')
+    
+    
+    #Fetch velocity components and their norm
+    U = handle['ut'][:,:,Nt-1]
+    V = handle['vt'][:,:,Nt-1]
+    N = np.sqrt(U**2 + V**2)
+    #Take a subset and transpose for quiver.
+    Ur =U[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    Vr = V[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    Nr = N[0:Nx:Nx//ratio,0:Ny:Ny//ratio].T
+    # Normalize the arrows to just get a readable direction
+    Ur = np.divide(Ur,Nr)
+    Vr = np.divide(Vr,Nr)
+    #Plot
+    im_t5 = ax_t5.pcolormesh(x_grid, y_grid, N)
+    ax_t5.quiver(Xr, Yr, Ur,Vr, width=0.002, color='w')
+    
+    # Layout settings and color bar
     plt.tight_layout()
-    fig.subplots_adjust(right=0.8)
-    cbar_ax = fig.add_axes([0.85, 0.10, 0.05, 0.7])
-    fig.colorbar(im_t3, cax=cbar_ax)
+    fig.subplots_adjust(right=0.85)
+    cbar1_ax = fig.add_axes([0.9, 0.55, 0.04, 0.4])
+    fig.colorbar(im_t0, cax=cbar1_ax)
+    cbar2_ax = fig.add_axes([0.9, 0.05, 0.04, 0.4])
+    fig.colorbar(im_t5, cax=cbar2_ax)
     handle.close()
     plt.show()

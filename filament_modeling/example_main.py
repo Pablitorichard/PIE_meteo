@@ -7,37 +7,44 @@ self_path = Path(os.path.dirname(inspect.getfile(lambda: None)))
 
 
 #Custom functions
-from gaussian_test import gaussian_test
+from test_cases import bubble_test, gaussian_test, v_stripe_test
 from advection_driver import advection_driver
 from ugly_plot import ugly_plot
-
-# Parameters
-Lx = 2048
-Ly = 1024
-Nx = 256
-Ny = 128
-dt = 30
-
-T = 1*300
-#T =48*3600
-Nt = T//dt
-
-cx = 500
-cy = 500
-radius = 100
-wind_norm = 0
-
-ratio_x = Nx//10 # 1 arrow every <ratio> point
-ratio_y = Ny//10
 
 # Pick an adress for the netCDF file (it will over write existing files)
 path = self_path / "out.nc" 
 
-# Initialize the bubbble test case
-gaussian_test("out.nc", Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius, wind_norm)
+# Parameters
+Lx = 2048E3
+Ly = 1024E3
+Nx = 256
+Ny = 128
 
-# The advection driver will propagate the solution in time
-advection_driver(path, 1)
+# Nt will drive the computation time. On my standard laptop (when plugged in), 
+# I measure around 500 time cycles per hour for linear interpolation.
+dt = 3000
+T = 48*3600
+Nt = int(T//dt)
+
+
+
+# Pick a test case
+
+# Half width of the stripe
+dY = Ny//20
+# Distance between the side of the X axis and the first V-profile
+dX = Nx//8
+v_stripe_test(path, Lx, Ly, Nx, Ny, T, Nt, dX, dY)
+
+# cx = Lx//2
+# cy = Ly//2
+# radius = Lx/20
+# bubble_test(path, Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius)
+
+
+# # The advection driver will propagate the solution in time
+advection_driver(path, pseudo_spectral_wind = 1,
+                 alpha_method = 'linear', F_method='linear')
 
 # the name is accurate, it is a plot, it is ugly
-ugly_plot(path, ratio_x,ratio_y)
+ugly_plot(path, ratio=20, lvl_num=15)
