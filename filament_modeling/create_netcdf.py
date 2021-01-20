@@ -36,6 +36,7 @@ def create_netcdf(path, Lx, Ly, T, Nx, Ny, Nt):
     handle.createDimension("Nx", Nx)
     handle.createDimension("Ny", Ny)
     handle.createDimension("Nt", None) 
+    handle.createDimension("one",1)
 
 #------------------------------------------------------------------------------
 
@@ -49,18 +50,41 @@ def create_netcdf(path, Lx, Ly, T, Nx, Ny, Nt):
     handle.dx = Lx / Nx
     handle.dy = Ly/ Ny  
     handle.dt = T/Nt
+    handle.z_star = -500
+    handle.gamma_1 = -4
+    handle.gamma_2 = -8.5
+    handle.Delta_zc = 500
+    handle.Delta_Tc = -5
+    handle.g = 9.81
+    handle.Nt = 0.01
+    handle.Ns = 2E-2
+    handle.theta_00 = 300
+    
 #------------------------------------------------------------------------------
 
 #VARIABLES --------------------------------------------------------------------
     # "f8" is a data type: 64-bit floating point variable
     handle.createVariable("ut","f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("vt", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("us","f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("vs", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("w", "f8", ("Nx", "Ny", "Nt"))
+    
+
     handle.createVariable("theta_t", "f8",("Nx", "Ny", "Nt"))
-    handle.createVariable("alpha_u", "f8", ("Nx", "Ny", "Nt"))
-    handle.createVariable("alpha_v", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("Delta_T_bb", "f8",("Nx", "Ny", "Nt"))
+    handle.createVariable("Delta_z", "f8",("Nx", "Ny", "Nt"))
+    
+    handle.createVariable("alpha_ut", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("alpha_vt", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("alpha_us", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("alpha_vs", "f8", ("Nx", "Ny", "Nt"))
+    
     handle.createVariable("t", "f8", ("Nt"))
     handle.createVariable("x_grid", "f8", ("Nx", "Ny"))
     handle.createVariable("y_grid", "f8", ("Nx", "Ny"))
+
+    
 #------------------------------------------------------------------------------
 
 #GEOMETRY INITIALIZATION ------------------------------------------------------

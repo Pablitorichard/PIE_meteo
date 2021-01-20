@@ -25,7 +25,7 @@ def v_stripe_test(path, Lx, Ly, Nx, Ny, T, Nt, dX, dY):
         
     #Bubble creation
     [X,Y] = np.mgrid[0:Nx,0:Ny]
-    F = 300*np.ones((Nx, Ny))
+    F = handle.theta_00*np.ones((Nx, Ny))
     depth = -15
     
 
@@ -55,13 +55,23 @@ def v_stripe_test(path, Lx, Ly, Nx, Ny, T, Nt, dX, dY):
     handle['theta_t'][:,:,0] = F
     handle['theta_t'][:,:,1] = F
     
+    handle['Delta_T_bb'][:,:,0] = handle.gamma_1 \
+        * F * handle.g/(handle.Nt*handle.Ns*handle.theta_00)
+    handle['Delta_z'][:,:,0] = np.zeros((Nx,Ny))
+    handle['Delta_z'][:,:,1] = np.zeros((Nx,Ny))
+    
     #Initial displacement guess for advection
-    handle['alpha_u'][:,:,0] = np.zeros((Nx,Ny))
-    handle['alpha_v'][:,:,0] = np.zeros((Nx,Ny))
+    handle['alpha_ut'][:,:,0] = np.zeros((Nx,Ny))
+    handle['alpha_vt'][:,:,0] = np.zeros((Nx,Ny))
+    handle['alpha_us'][:,:,0] = np.zeros((Nx,Ny))
+    handle['alpha_vs'][:,:,0] = np.zeros((Nx,Ny))
     
     #Uniform wind
     handle['ut'][:,:,0] = np.zeros((Nx,Ny))
     handle['vt'][:,:,0] = np.zeros((Nx,Ny))
+    handle['us'][:,:,0] = np.zeros((Nx,Ny))
+    handle['vs'][:,:,0] = np.zeros((Nx,Ny))
+    handle['w'][:,:,0] = np.zeros((Nx,Ny))
     
     #time storage
     handle['t'][0] = 0
