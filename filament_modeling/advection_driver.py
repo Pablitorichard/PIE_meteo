@@ -63,10 +63,6 @@ def advection_driver(path, pseudo_spectral_wind=1,
         
         
         
-        
-        
-        
-        
         # Write new quantities to netCDF
         handle['alpha_u'][:,:,k] = alpha_u
         handle['alpha_v'][:,:,k] = alpha_v
