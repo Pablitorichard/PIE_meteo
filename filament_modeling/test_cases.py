@@ -26,9 +26,7 @@ def v_stripe_test(path, Lx, Ly, Nx, Ny, T, Nt, dX, dY):
     #Bubble creation
     [X,Y] = np.mgrid[0:Nx,0:Ny]
     F = handle.theta_00*np.ones((Nx, Ny))
-    depth = -15
-    
-
+    depth = -15#- 2800 * (handle.Nt*handle.Ns*handle.theta_00)/ handle.g
 
     F[dX : Nx-dX, Ny//2 - dY : Ny//2 + dY] = \
         F[dX : Nx-dX, Ny//2 - dY : Ny//2 + dY] +\

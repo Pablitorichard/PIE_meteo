@@ -120,19 +120,19 @@ def ugly_WV(path, lvl_num=5, colormap='Greys', ratio=8):
         plt.subplots(nrows=2, ncols =3)
     
     # Potential temperature plot
-    F=handle['Delta_T_bb'][:,:,1]
+    F=handle['Delta_z'][:,:,1]
     lvl=MaxNLocator(nbins=lvl_num).tick_values(F.min(), F.max())       
     im_t0=ax_t0.contourf(F.T,cmap=colormap,levels=lvl)
     t0_label = 't = '+ str(round(handle['t'][0]/3600,3)) + " h"
     ax_t0.set_xlabel(t0_label)
     
-    F=handle['Delta_T_bb'][:,:,Nt//2]
+    F=handle['Delta_z'][:,:,Nt//2]
     lvl=MaxNLocator(nbins=lvl_num).tick_values(F.min(), F.max())       
     ax_t1.contourf(F.T,cmap=colormap,levels=lvl)
     t1_label = 't = '+ str(round(handle['t'][Nt//2]/3600,3)) + " h"
     ax_t1.set_xlabel(t1_label)
    
-    F=handle['Delta_T_bb'][:,:,Nt-1]
+    F=handle['Delta_z'][:,:,Nt-1]
     lvl=MaxNLocator(nbins=lvl_num).tick_values(F.min(), F.max())       
     ax_t2.contourf(F.T,cmap=colormap,levels=lvl)
     t2_label = 't = '+ str(round(handle['t'][Nt]/3600,3)) + " h"
