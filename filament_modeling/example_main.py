@@ -9,7 +9,7 @@ self_path = Path(os.path.dirname(inspect.getfile(lambda: None)))
 #Custom functions
 from test_cases import bubble_test, gaussian_test, v_stripe_test
 from advection_driver import advection_driver
-from ugly_plot import ugly_plot, ugly_WV
+from ugly_plot import ugly_plot, ugly_WV, ugly_Delta_z
 
 # Pick an adress for the netCDF file (it will over write existing files)
 path = self_path / "outputs/out_dt300_linear_small.nc" 
@@ -22,8 +22,8 @@ Ny = 128
 
 # Nt will drive the computation time. On my standard laptop (when plugged in), 
 # I measure around 500 time cycles per hour for linear interpolation.
-dt = 3000
-T = 10*3600
+dt = 300
+T = 2*3600
 Nt = int(T//dt)
 
 
@@ -47,5 +47,6 @@ advection_driver(path, pseudo_spectral_wind = 1,
                 alpha_method = 'linear', F_method='linear')
 
 # the name is accurate, it is a plot, it is ugly
-ugly_plot(path, ratio=20, lvl_num=10)
-ugly_WV(path, ratio=20, lvl_num=10)
+ugly_plot(path, ratio=20, lvl_num=50)
+ugly_WV(path, ratio=20, lvl_num=50)
+ugly_Delta_z(path, ratio=20, lvl_num=50)

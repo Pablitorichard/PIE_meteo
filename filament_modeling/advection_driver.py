@@ -9,10 +9,10 @@ import time
 from netCDF4 import Dataset
 # My cocktail to make path stuff work in Python
 
-
+import numpy as np
 from test_cases import bubble_test, gaussian_test, v_stripe_test
 from advection_step_3P import advection_step_3P 
-from spectral import streamfunc, geostwind
+from spectral import geostwind, vertwind
 
 
 
@@ -30,6 +30,9 @@ def advection_driver(path, pseudo_spectral_wind=1,
     Ny = handle.Ny
     dx=handle.dx
     dy=handle.dx
+    
+    
+    k_hour = int(3600/dt)
     
     ut_minus = handle['ut'][:,:,0]  
     vt_minus = handle['vt'][:,:,0]
@@ -55,11 +58,9 @@ def advection_driver(path, pseudo_spectral_wind=1,
         
         # UPDATE OF THE TROPOPAUSE WIND---------------------------------
         if (pseudo_spectral_wind == True):
-            psi_t = streamfunc(Lx, Ly, Nx, Ny, theta)
-            vt,ut = geostwind(Lx, Ly, Nx, Ny, psi_t)
+            ut, vt = geostwind(Lx,Ly,theta, z=0)
             
-            psi_s = streamfunc(Lx, Ly, Nx, Ny, theta, z=handle.z_star)
-            vs,us = geostwind(Lx, Ly, Nx, Ny, psi_s)
+            us, vs = geostwind(Lx,Ly,theta, z=handle.z_star)
            
         else:
             ut = ut_minus
@@ -68,6 +69,8 @@ def advection_driver(path, pseudo_spectral_wind=1,
             vs = vs_minus 
         #---------------------------------------------------------------
                 
+
+        
         
         #ADVECTION AT THE TROPOPAUSE AND MORE------------------------------------
         alpha_ut, alpha_vt, theta_plus = \
@@ -81,9 +84,21 @@ def advection_driver(path, pseudo_spectral_wind=1,
                           F_method=F_method)
         #---------------------------------------------------------------
         
-        Delta_T_disp = handle.gamma_2 * Delta_z
+                #UPDATE OF W ---------------------------------------------------
+        if ((k-2)%k_hour==0 ):# k-1 -> k ?  
+            w = vertwind(Lx, Ly,theta, theta_minus, dt, z=handle.z_star)
+            print("w: ",np.max(w)," , ", np.min(w))
+            Delta_z += k_hour * dt * w
+            Delta_z_plus += k_hour * dt * w
+            
+        #---------------------------------------------------------------
+        print(k, ": ",np.max(Delta_z)," , ", np.min(Delta_z))
         
-        Delta_T_cloud = handle.Delta_Tc * ( Delta_z > handle.Delta_zc )  
+        
+        Delta_T_disp = handle.gamma_2 * Delta_z
+ 
+        Delta_T_cloud = handle.Delta_Tc * ( Delta_z > handle.Delta_zc ) 
+
         
         Delta_T_bb = handle['Delta_T_bb'][:,:,0] + Delta_T_disp + Delta_T_cloud
         

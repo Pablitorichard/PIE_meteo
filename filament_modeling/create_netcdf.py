@@ -51,13 +51,13 @@ def create_netcdf(path, Lx, Ly, T, Nx, Ny, Nt):
     handle.dy = Ly/ Ny  
     handle.dt = T/Nt
     handle.z_star = -500
-    handle.gamma_1 = -4
-    handle.gamma_2 = -8.5
-    handle.Delta_zc = 500
+    handle.gamma_1 = -4E-3 #K.m-1
+    handle.gamma_2 = -8.5E-3 #K.m-1
+    handle.Delta_zc = 500 
     handle.Delta_Tc = -5
     handle.g = 9.81
-    handle.Nt = 0.01
-    handle.Ns = 2E-2
+    handle.N_t = 0.01
+    handle.N_s = 2E-2
     handle.theta_00 = 300
     
 #------------------------------------------------------------------------------
