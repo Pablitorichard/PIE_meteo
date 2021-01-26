@@ -53,8 +53,10 @@ def v_stripe_test(path, Lx, Ly, Nx, Ny, T, Nt, dX, dY):
     handle['theta_t'][:,:,0] = F
     handle['theta_t'][:,:,1] = F
     
-    handle['Delta_T_bb'][:,:,0] = handle.gamma_1 \
+    handle['Delta_T_hist'][:,:,0] = handle.gamma_1 \
         * F * handle.g/(handle.N_t*handle.N_s*handle.theta_00)
+    handle['Delta_T_hist'][:,:,1] =  handle['Delta_T_hist'][:,:,0] 
+    handle['Delta_T_bb'][:,:,0] = handle['Delta_T_hist'][:,:,0]
     handle['Delta_z'][:,:,0] = np.zeros((Nx,Ny))
     handle['Delta_z'][:,:,1] = np.zeros((Nx,Ny))
     
