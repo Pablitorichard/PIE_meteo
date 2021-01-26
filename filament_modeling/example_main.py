@@ -22,8 +22,8 @@ Ny = 128
 
 # Nt will drive the computation time. On my standard laptop (when plugged in), 
 # I measure around 500 time cycles per hour for linear interpolation.
-dt = 3600
-T = 24*3600
+dt = 300
+T = 48*3600
 Nt = int(T//dt)
 
 
