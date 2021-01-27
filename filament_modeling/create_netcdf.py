@@ -73,6 +73,7 @@ def create_netcdf(path, Lx, Ly, T, Nx, Ny, Nt):
 
     handle.createVariable("theta_t", "f8",("Nx", "Ny", "Nt"))
     handle.createVariable("Delta_T_bb", "f8",("Nx", "Ny", "Nt"))
+    handle.createVariable("Delta_T_hist", "f8",("Nx", "Ny", "Nt"))
     handle.createVariable("Delta_z", "f8",("Nx", "Ny", "Nt"))
     
     handle.createVariable("alpha_ut", "f8", ("Nx", "Ny", "Nt"))

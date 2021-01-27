@@ -12,7 +12,7 @@ from advection_driver import advection_driver
 from ugly_plot import ugly_plot, ugly_WV, ugly_Delta_z
 
 # Pick an adress for the netCDF file (it will over write existing files)
-path = self_path / "outputs/out_dt300_linear_small.nc" 
+path = self_path / "outputs/out_dt300_WV.nc" 
 
 # Parameters
 Lx = 2048E3
@@ -23,7 +23,7 @@ Ny = 128
 # Nt will drive the computation time. On my standard laptop (when plugged in), 
 # I measure around 500 time cycles per hour for linear interpolation.
 dt = 300
-T = 2*3600
+T = 48*3600
 Nt = int(T//dt)
 
 
@@ -31,22 +31,19 @@ Nt = int(T//dt)
 # Pick a test case
 
 # Half width of the stripe
-dY = Ny//10
+dY = Ny//15
 # Distance between the side of the X axis and the first V-profile
 dX = Nx//8
 v_stripe_test(path, Lx, Ly, Nx, Ny, T, Nt, dX, dY)
 
-# cx = Lx//2
-# cy = Ly//2
-# radius = Lx/20
-#bubble_test(path, Lx, Ly, Nx, Ny, T, Nt, cx, cy, radius)
 
 
-# # The advection driver will propagate the solution in time
+
+# The advection driver will propagate the solution in time
 advection_driver(path, pseudo_spectral_wind = 1,
-                alpha_method = 'linear', F_method='linear')
+                alpha_method = 'linear', F_method='bicubic')
 
 # the name is accurate, it is a plot, it is ugly
 ugly_plot(path, ratio=20, lvl_num=50)
 ugly_WV(path, ratio=20, lvl_num=50)
-ugly_Delta_z(path, ratio=20, lvl_num=50)
+ugly_Delta_z(path, ratio=20, lvl_num=50,colormap='bone')

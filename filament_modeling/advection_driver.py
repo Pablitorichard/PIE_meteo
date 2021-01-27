@@ -33,6 +33,7 @@ def advection_driver(path, pseudo_spectral_wind=1,
     
     
     k_hour = int(3600/dt)
+    #k_hour = 4
     
     ut_minus = handle['ut'][:,:,0]  
     vt_minus = handle['vt'][:,:,0]
@@ -49,6 +50,8 @@ def advection_driver(path, pseudo_spectral_wind=1,
     
     Delta_z_minus = handle['Delta_z'][:,:,0]
     Delta_z = handle['Delta_z'][:,:,1]
+    Delta_T_hist_minus = handle['Delta_T_hist'][:,:,0]
+    Delta_T_hist = handle['Delta_T_hist'][:,:,1]
     theta_minus = handle['theta_t'][:,:,0]
     theta = handle['theta_t'][:,:,1]
     
@@ -82,14 +85,21 @@ def advection_driver(path, pseudo_spectral_wind=1,
         advection_step_3P(alpha_us_minus, alpha_vs_minus, Delta_z_minus,
                           dt, us, vs, dx, dy, alpha_method = alpha_method,
                           F_method=F_method)
+        
+        alpha_us, alpha_vs, Delta_T_hist_plus = \
+        advection_step_3P(alpha_us_minus, alpha_vs_minus, Delta_T_hist_minus,
+                          dt, us, vs, dx, dy, alpha_method = alpha_method,
+                          F_method=F_method)
         #---------------------------------------------------------------
         
                 #UPDATE OF W ---------------------------------------------------
-        if ((k-2)%k_hour==0 ):# k-1 -> k ?  
+        if ((k-1)%k_hour==0 ):# k-1 -> k ?  
             w = vertwind(Lx, Ly,theta, theta_minus, dt, z=handle.z_star)
+            w_plus = vertwind(Lx, Ly,theta_plus, theta, dt, z=handle.z_star)
+            w_mean = (w + w_plus)/2
             print("w: ",np.max(w)," , ", np.min(w))
-            Delta_z += k_hour * dt * w
-            Delta_z_plus += k_hour * dt * w
+            Delta_z += k_hour * dt * w_mean
+            Delta_z_plus += k_hour * dt * w_mean
             
         #---------------------------------------------------------------
         print(k, ": ",np.max(Delta_z)," , ", np.min(Delta_z))
@@ -100,7 +110,7 @@ def advection_driver(path, pseudo_spectral_wind=1,
         Delta_T_cloud = handle.Delta_Tc * ( Delta_z > handle.Delta_zc ) 
 
         
-        Delta_T_bb = handle['Delta_T_bb'][:,:,0] + Delta_T_disp + Delta_T_cloud
+        Delta_T_bb = Delta_T_hist + Delta_T_disp + Delta_T_cloud
         
         
         # Write new quantities to netCDF
@@ -111,7 +121,9 @@ def advection_driver(path, pseudo_spectral_wind=1,
         
         handle['theta_t'][:,:,k+1] = theta_plus
         
-        handle['Delta_z'][:,:,k] = Delta_z
+        handle['Delta_z'][:,:,k+1] = Delta_z_plus
+        handle['Delta_T_hist'][:,:,k+1] = Delta_T_hist_plus
+        
         handle['Delta_T_bb'][:,:,k] = Delta_T_bb
         
         handle['ut'][:,:,k] = ut
@@ -131,6 +143,8 @@ def advection_driver(path, pseudo_spectral_wind=1,
         theta = theta_plus
         Delta_z_minus = Delta_z
         Delta_z = Delta_z_plus
+        Delta_T_hist_minus = Delta_T_hist
+        Delta_T_hist = Delta_T_hist_plus
         
         ut_minus = ut
         vt_minus = vt
