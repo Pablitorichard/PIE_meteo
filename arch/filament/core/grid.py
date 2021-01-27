@@ -2,7 +2,7 @@ import numpy as np
 
 class Grid():
     
-    def __init__(self, Lx, Ly, Nx, Ny):
+    def __init__(self, Lx, Ly, Nx, Ny, **kwargs):
         
         self.Lx = Lx
         self.Ly = Ly

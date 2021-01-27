@@ -3,46 +3,112 @@ from netCDF4 import Dataset
 
 #------------------------------------------------------------------------------
 
-def create_results_netcdf(path, grid, T, Nt):
+def create_results_netcdf(path, grid, T, params, **kwargs):
 
     handle = Dataset(path, 'w', format='NETCDF4', parallel=False)
 
     handle.createDimension("Nx", grid.Nx)
     handle.createDimension("Ny", grid.Ny)
     handle.createDimension("Nt", None) 
-
-    handle.T = T    
-    handle.Lx = grid.Lx
-    handle.Ly = grid.Ly
-    handle.Nx = grid.Nx
-    handle.Ny = grid.Ny
-    handle.Nt = Nt
-    handle.dx = grid.dx
-    handle.dy = grid.dy
-    handle.dt = T/Nt
+	
+	handle.T = T
+    list(map(lambda item: handle.setncattr(*item), params.items())) 
 
     # "f8" is a data type: 64-bit floating point variable
     handle.createVariable("ut","f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("vt", "f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("us","f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("vs", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("w", "f8", ("Nx", "Ny", "Nt"))
+    
+
     handle.createVariable("theta_t", "f8",("Nx", "Ny", "Nt"))
-    handle.createVariable("theta_s", "f8",("Nx", "Ny", "Nt"))
-    handle.createVariable("delta_z", "f8",("Nx", "Ny", "Nt"))
+    handle.createVariable("Delta_T_bb", "f8",("Nx", "Ny", "Nt"))
     handle.createVariable("Delta_z", "f8",("Nx", "Ny", "Nt"))
-    handle.createVariable("w", "f8",("Nx", "Ny", "Nt"))
+    
     handle.createVariable("alpha_ut", "f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("alpha_vt", "f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("alpha_us", "f8", ("Nx", "Ny", "Nt"))
     handle.createVariable("alpha_vs", "f8", ("Nx", "Ny", "Nt"))
-    handle.createVariable("t", "f8", ("Nt"))
     
+    handle.createVariable("t", "f8", ("Nt"))
     handle.createVariable("x_grid", "f8", ("Nx", "Ny"))
     handle.createVariable("y_grid", "f8", ("Nx", "Ny"))
+    
+    
+    
     handle['x_grid'][:,:] = grid.x_grid
     handle['y_grid'][:,:] = grid.y_grid
+    
+    handle.close()
+    
+#------------------------------------------------------------------------------
+
+def create_initial_netcdf(path, Lx, Ly, Nx, Ny, dt, nb_state):
+
+#CREATION OF THE NETCDF FILE --------------------------------------------------
+    handle = Dataset(path, 'w',format='NETCDF4')
+
+#DIMENSIONS -------------------------------------------------------------------
+    handle.createDimension("Nx", Nx)
+    handle.createDimension("Ny", Ny)
+    handle.createDimension("Nt", nb_state) 
+    handle.createDimension("one",1)
+
+#ATTRIBUTE --------------------------------------------------------------------   
+    # Geometry
+    handle.Lx = Lx
+    handle.Ly = Ly
+    handle.Nx = Nx
+    handle.Ny = Ny
+    handle.dx = Lx / Nx
+    handle.dy = Ly / Ny 
+    
+    ## Parameters
+    handle.z_star = -500
+    handle.gamma_1 = -4E-3 #K.m-1
+    handle.gamma_2 = -8.5E-3 #K.m-1
+    handle.Delta_zc = 500 
+    handle.Delta_Tc = -5
+    handle.g = 9.81
+    handle.N_t = 0.01 # Brunt-Vaisala frequency of the troposphere (s^{-1})
+    handle.N_s = 2E-2 # Brunt-Vaisala frequency of the stratosphere (s^{-1})
+    handle.theta_00 = 300
+
+#VARIABLES --------------------------------------------------------------------
+    # "f8" is a data type: 64-bit floating point variable
+    handle.createVariable("ut","f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("vt", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("us","f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("vs", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("w", "f8", ("Nx", "Ny", "Nt"))
+    
+
+    handle.createVariable("theta_t", "f8",("Nx", "Ny", "Nt"))
+    handle.createVariable("Delta_T_bb", "f8",("Nx", "Ny", "Nt"))
+    handle.createVariable("Delta_z", "f8",("Nx", "Ny", "Nt"))
+    
+    handle.createVariable("alpha_ut", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("alpha_vt", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("alpha_us", "f8", ("Nx", "Ny", "Nt"))
+    handle.createVariable("alpha_vs", "f8", ("Nx", "Ny", "Nt"))
+    
+    handle.createVariable("t", "f8", ("Nt"))
+    handle.createVariable("x_grid", "f8", ("Nx", "Ny"))
+    handle.createVariable("y_grid", "f8", ("Nx", "Ny"))
+
+#GEOMETRY INITIALIZATION ------------------------------------------------------
+    grid = np.mgrid[0:handle.Lx:handle.dx, 0:handle.Ly:handle.dy]
+    handle['x_grid'][:,:] = grid[0,:,:]
+    handle['y_grid'][:,:] = grid[1,:,:]
+    
+#TIME INITIALIZATION-----------------------------------------------------------
+	handle['t'][:] = dt * np.arange(nb_state)
 
     return handle
+
+
+
 
 #------------------------------------------------------------------------------
 

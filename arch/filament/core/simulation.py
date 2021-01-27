@@ -2,28 +2,32 @@ import numpy as np
 from netCDF4 import Dataset
 import os
 
-
 from .history import History
 from .grid import Grid
 from ..test.test_cases import create_results_netcdf
 
+#-------------------------------------------------------------------------------------------
+
 class Simulation():
 
-    def __init__(self, initialCDF, Lx, Ly, Nx, Ny, T, Nt, methods, output_folder, save_rate, backup_rate, verbose):
+    def __init__(self, initialCDF, T, Nt, methods, output_folder, save_rate, backup_rate, verbose=True, methods_kwargs=None):
        
         # store the initial data
         self.history = History.fromCDF(initialCDF)
-        initialCDF.close()
-
-        # store the physical dimensions
-        self.grid = Grid(Lx, Ly, Nx, Ny)
-        self.timeline = np.array([0]+(Nt-1)*[None]) #np.linspace(0, T, Nt, endpoint=False)
+        self.params = initialCDF.__dict__
+        self.grid = Grid(**self.params)
+        
+        tinit = initialCDF['t'][:].data
+        tnext = np.array((Nt-len(tinit)) * [None])
+        self.timeline = np.concatenate((tinit,tnext), axis=0)
         self.T = T
         self.Nt = Nt
-        self.dt = T/Nt ############@
-
+        
+        initialCDF.close()
+        
         # checkout the methods
         self.methods = methods
+        self.methods_kwargs = methods_kwargs
 
         # handling the output netCDF files (save & backup)
         try:
@@ -33,10 +37,8 @@ class Simulation():
         self.output_folder = output_folder
         self.save_rate = save_rate
         self.backup_rate = backup_rate
-        resultsCDF = create_results_netcdf(output_folder + '/results.nc', self.grid, T, Nt) ##### to change of course
-        resultsCDF.close()
-        backupCDF = create_results_netcdf(output_folder + '/backup.nc', self.grid, T, Nt) ######
-        backupCDF.close()
+        create_results_netcdf(output_folder + '/results.nc', **self)
+        create_results_netcdf(output_folder + '/backup.nc', **self) 
 
         # other parameters
         self.verbose = verbose
