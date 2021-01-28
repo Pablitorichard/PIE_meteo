@@ -1,6 +1,7 @@
 import numpy as np
 from netCDF4 import Dataset
 import os
+import time
 
 from .history import History
 from .grid import Grid
@@ -45,6 +46,7 @@ class Simulation():
 
 
     def run(self):
+        cpu_tot_time = np.zeros(len(self.methods))
         if self.verbose:
             print("          ------------------------")
             print("          |  RUNNING SIMULATION  |")
@@ -64,10 +66,20 @@ class Simulation():
                 print("---> saved results of iteration "+str(iter_nb)) if self.verbose else None
 
             # then perform forward
-            self.forward()
-    
+            cpu_time = self.forward()
+            cpu_tot_time += cpu_time
+        
+        # Print Total and Mean CPU time per method
+        for ind, method in enumerate(self.methods):
+            print("\n\nTotal CPU time for method ",method.__name__," = ",cpu_tot_time[ind]," seconds") if self.verbose else None
+            print("Mean CPU time for method ",method.__name__," per call = ",cpu_tot_time[ind]/self.Nt," seconds") if self.verbose else None
 
     def forward(self):
-        for method, kwargs in zip(self.methods, self.methods_kwargs):
+        cpu_time = np.zeros(len(self.methods))
+        for ind, (method, kwargs) in enumerate(zip(self.methods, self.methods_kwargs)):
+            t0 = time.time()
             print("      *** Proceeding to method: "+method.__name__) if self.verbose > 1 else None
             method(**self.__dict__, **kwargs)
+            cpu_time[ind] = time.time() - t0 
+            print("      *** CPU time = ",cpu_time[ind]," seconds") if self.verbose > 1 else None
+        return cpu_time
