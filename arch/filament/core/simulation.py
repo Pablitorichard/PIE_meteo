@@ -71,8 +71,8 @@ class Simulation():
         
         # Print Total and Mean CPU time per method
         for ind, method in enumerate(self.methods):
-            print("\n\nTotal CPU time for method ",method.__name__," = ",cpu_tot_time[ind]," seconds") if self.verbose else None
-            print("Mean CPU time for method ",method.__name__," per call = ",cpu_tot_time[ind]/self.Nt," seconds") if self.verbose else None
+            print("\n\nTotal CPU time for method ", method.__name__, " = {:.2f}".format(cpu_tot_time[ind]), " seconds") if self.verbose else None
+            print("Mean CPU time for method ", method.__name__, " per call = {:.2f}".format(cpu_tot_time[ind]/self.Nt), " seconds") if self.verbose else None
 
     def forward(self):
         cpu_time = np.zeros(len(self.methods))
@@ -81,5 +81,5 @@ class Simulation():
             print("      *** Proceeding to method: "+method.__name__) if self.verbose > 1 else None
             method(**self.__dict__, **kwargs)
             cpu_time[ind] = time.time() - t0 
-            print("      *** CPU time = ",cpu_time[ind]," seconds") if self.verbose > 1 else None
+            print("      *** CPU time = {:.2f}".format(cpu_time[ind]), " seconds") if self.verbose > 1 else None
         return cpu_time
