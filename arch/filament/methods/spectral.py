@@ -1,6 +1,7 @@
 import numpy as np
 
-def geostwind(a,b,thetatp,z=0,fourier=False):
+def geostwind(a, b, thetatp, z=0, fourier=False, verbose=0):
+    
     f = 1e-4
     theta00 = 300
     g = 10
@@ -35,9 +36,10 @@ def geostwind(a,b,thetatp,z=0,fourier=False):
         ug = -(np.roll(psi,-1,1)-np.roll(psi,1,1))/(2*a/Pa)
         vg = (np.roll(psi,-1,0)-np.roll(psi,1,0))/(2*b/Pb)
     
-    return ug,vg
+    return ug, vg
 
-def vertwind(a,b,thetatp,thetatpprev,dt,z=0):
+def vertwind(a, b, thetatp, thetatpprev, dt, z=0, verbose=0):
+    
     f = 1e-4
     theta00 = 300
     g = 10

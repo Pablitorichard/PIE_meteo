@@ -10,7 +10,7 @@ from ..test.test_cases import create_results_netcdf
 
 class Simulation():
 
-    def __init__(self, initialCDF, T, Nt, methods, output_folder, save_rate, backup_rate, verbose=True, methods_kwargs=None):
+    def __init__(self, initialCDF, T, Nt, methods, output_folder, save_rate, backup_rate, verbose=0, methods_kwargs=None):
        
         # store the initial data
         self.history = History.fromCDF(initialCDF)
@@ -27,7 +27,7 @@ class Simulation():
         
         # checkout the methods
         self.methods = methods
-        self.methods_kwargs = methods_kwargs
+        self.methods_kwargs = methods_kwargs if methods_kwargs is not None else len(methods)*[None]
 
         # handling the output netCDF files (save & backup)
         try:
@@ -37,33 +37,37 @@ class Simulation():
         self.output_folder = output_folder
         self.save_rate = save_rate
         self.backup_rate = backup_rate
-        create_results_netcdf(output_folder + '/results.nc', **self)
-        create_results_netcdf(output_folder + '/backup.nc', **self) 
+        create_results_netcdf(output_folder + '/results.nc', **self.__dict__)
+        create_results_netcdf(output_folder + '/backup.nc', **self.__dict__) 
 
         # other parameters
         self.verbose = verbose
 
 
     def run(self):
-
+        if self.verbose:
+            print("          ------------------------")
+            print("          |  RUNNING SIMULATION  |")
+            print("          ------------------------")
         for iter_nb in range(self.Nt):
-
+            print("\n\nIteration ", iter_nb, "...") if self.verbose else None
             # first handle saving
             if iter_nb % self.backup_rate == 0:
                 backupCDF = Dataset(self.output_folder + '/backup.nc', 'r+', format='NETCDF4', parallel=False)
                 self.history.save(backupCDF, backup=True)
                 backupCDF.close()
-                print("backup "+str(iter_nb)+" done") if self.verbose else None
+                print("---> backup refreshed at iteration "+str(iter_nb)) if self.verbose else None
             if iter_nb % self.save_rate == 0:
                 resultsCDF = Dataset(self.output_folder + '/results.nc', 'r+', format='NETCDF4', parallel=False)
                 self.history.save(resultsCDF, backup=False)  
                 resultsCDF.close()  
-                print("save "+str(iter_nb)+" done") if self.verbose else None
+                print("---> saved results of iteration "+str(iter_nb)) if self.verbose else None
 
             # then perform forward
             self.forward()
     
 
     def forward(self):
-        for method in self.methods:
-            method(**self.__dict__)
+        for method, kwargs in zip(self.methods, self.methods_kwargs):
+            print("      *** Proceeding to method: "+method.__name__) if self.verbose > 1 else None
+            method(**self.__dict__, **kwargs)

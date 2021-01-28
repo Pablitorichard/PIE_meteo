@@ -9,7 +9,7 @@ class History():
     @classmethod
     def fromCDF(cls, netCDF_file):
         size = netCDF_file.dimensions['Nt'].size 
-        if (netCDF_file.Nt is not None):
+        if size > 0:
             state_list = [State.fromCDF(netCDF_file, k) for k in range(size)]
             return cls(state_list)
         else:
@@ -17,8 +17,13 @@ class History():
 
 
     def save(self, netCDF_file, backup=False):
-        for state in self.state_list:
-            state.save(netCDF_file, backup)
+        if not backup:
+        # the oldest state is supposed to be completely known
+        # thus it is this one we choose to export
+            self.state_list[0].save(netCDF_file, backup=False)
+        else:
+            for ind, state in enumerate(self.state_list):
+                state.save(netCDF_file, backup=True, k=ind)
 
     def append(self, state):
         self.state_list.append(state)

@@ -1,32 +1,31 @@
-"""
- alpha_interp interpolates a multidimensionnal field F from a 2D grid to 
- to an 'upstream' unstructured mesh defined by the displacements 
- alpha_u, alpha_v: If F were a continuous field,we would have:
-     F_int(x,y) = F(x-alpha, y-alpha)
- Inputs:
-     - alpha_x, double(Nx,Ny): Displacement to apply to the x coordinate
-     of each grid point to get the upstream mesh
-     
-     - alpha_x, double(Nx,Ny): Displacement to apply to the x coordinate
-     of each grid point to get the upstream mesh
-     
-     - F, double(Nx,Ny,dim): Multidimensional field on a 2D grid of 
-     dimensions Nx,Ny
-     
-     - method, string: Interpolation method, set by default to 'linear'. 
-     This is the only available option right now.
-
-Output:
-    - F_int, double(Nx,Ny,dim) : Value of the field F interpolated on the
-     upstream mesh. 
-"""
-
-
 import numpy as np
 
 
-def upstream_interp(alpha_x, alpha_y, F, method='linear'):
-    
+def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0):
+    """
+     upstream_interp interpolates a multidimensionnal field F from a 2D grid to 
+     to an 'upstream' unstructured mesh defined by the displacements 
+     alpha_u, alpha_v: If F were a continuous field, we would have:
+         F_int(x,y) = F(x-alpha, y-alpha)
+     Inputs:
+         - alpha_x, double(Nx,Ny): Displacement to apply to the x coordinate
+         of each grid point to get the upstream mesh
+
+         - alpha_x, double(Nx,Ny): Displacement to apply to the x coordinate
+         of each grid point to get the upstream mesh
+
+         - F, double(Nx,Ny,dim): Multidimensional field on a 2D grid of 
+         dimensions Nx,Ny
+
+         - method, string: Interpolation method, set by default to 'linear'. 
+         This is the only available option right now.
+
+    Output:
+        - F_int, double(Nx,Ny,dim) : Value of the field F interpolated on the
+         upstream mesh. 
+    """
+    print("         upstream_interp called with method: ", method) if verbose > 2 else None
+
     if len(F.shape)==2:
         F = np.array([F])
         
@@ -34,9 +33,9 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear'):
     F_int = np.zeros((dim,Nx,Ny))
     if method=='nearest':
          # Coordinates of the points of the upstream mesh
-         [x_grid, y_grid] = np.mgrid[0:Nx-1, 0:Ny-1]
-         x_grid = x_grid -alpha_x
-         y_grid = y_grid- alpha_y
+         [x_grid, y_grid] = np.mgrid[0:Nx, 0:Ny]
+         x_grid = x_grid - alpha_x
+         y_grid = y_grid - alpha_y
          
          # Apply periodic boundary coniditions. Note that nothing is done
          # for x,y<0 as the indices are already periodic in Python. 
@@ -44,7 +43,7 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear'):
          y_grid[np.where(y_grid > Ny-1)] -= (Ny-1)
          
          # Fetch the closest neighbor
-         F_int[:,:,:] = F[np.round(x_grid), np.round(y_grid),:]
+         F_int[:,:,:] = F[np.round(x_grid), np.round(y_grid),:] ##### seems to generate bugs
          
     elif method=='linear':
         #We loop on the elements of alpha_u/v
@@ -55,7 +54,6 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear'):
                 yi = y - alpha_y[x,y]
                 
                 # Periodic boundary conditions
-                #print("xi,yi : ", xi,yi)
                 if (xi > 2*(Nx-1) or x< -Nx-1 
                     or yi > 2*(Ny-1) or yi< -Ny-1): 
                     print('Displacement is too large: alpha = [',\
@@ -78,7 +76,7 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear'):
                 
                 x_coeff = x_top - xi
                 y_coeff = y_top - yi
-                
+
                 #Update of F_int
                 F_int[:,x,y] = x_coeff * y_coeff * F[:,x_top-1,y_top-1] \
                     + x_coeff * (1-y_coeff) * F[:,x_top-1,y_top] \
@@ -186,7 +184,7 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear'):
                                             1.25 * F_halo[:, 3:, 1:-2] + \
                                                 F_halo[:, 3:, 2:-1] - \
                                                     0.25 * F_halo[:, 3:, 3:]
-		
+
         a33 = 0.25 * F_halo[:, 0:-3, 0:-3] - 0.75 * F_halo[:, 0:-3, 1:-2] + \
             0.75 * F_halo[:, 0:-3, 2:-1] - 0.25 * F_halo[:, 0:-3, 3:] -  \
             0.75 * F_halo[:, 1:-2, 0:-3] + 2.25 * F_halo[:, 1:-2, 1:-2] - \
@@ -206,17 +204,16 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear'):
                 yi = y - alpha_y[x,y]
                                 
                 # Periodic boundary conditions
-                #print("xi,yi : ", xi,yi)
                 if (xi > 2*(Nx-1) or yi > 2*(Ny-1)):
-                    print('Displacement too large: xi,yi=',xi,yi)
+                    print('Displacement too large: xi,yi=', xi, yi)
                 
-                if xi<0 :
+                if xi < 0 :
                     xi += Nx-1 
-                elif xi> Nx-1:
+                elif xi > Nx-1:
                     xi -= (Nx-1)
-                if xi<0 :
+                if xi < 0 :
                     yi += Ny-1
-                elif yi> Ny-1:
+                elif yi > Ny-1:
                     yi -= (Ny-1)
                 
                 #Normalized coordinates inside the cell
@@ -238,7 +235,7 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear'):
                     (a30[:, xf, yf] + a31[:, xf, yf] * yb +\
                      a32[:, xf, yf] * yb**2 + a33[:, xf, yf] * yb**3) * xb**3 
     else:
-        print('Unkwon method for interpolation: ',method)
+        raise "Unkwon method for interpolation: " + method
     if dim==1:
         F_int = F_int[0,:,:]
     
