@@ -1,5 +1,5 @@
 from .advection_step_3P import advection_step_3P
-# from .spectral import vertwind
+from .spectral import vertwind
 from ..core.state import State #, variables
 import numpy as np
 
@@ -33,8 +33,8 @@ def wrap_wv(history, grid, params, alpha_method, order_alpha, F_method, verbose=
     #UPDATE OF W ---------------------------------------------------
     k_hour = int(3600/dt)
     if ((np.floor(cur_state.t/dt)-1)%k_hour==0 ):# k-1 -> k ?
-        cur_w = vertwind(grid.Lx, grid.Ly, cur_state.vrs['theta'], pre_state.vrs['theta'], dt, z=params.z_star)
-        new_w = vertwind(grid.Lx, grid.Ly, new_state.vrs['theta'], cur_state.vrs['theta'], dt, z=params.z_star)
+        cur_w = vertwind(grid.Lx, grid.Ly, cur_state.vrs['theta_t'], pre_state.vrs['theta_t'], dt, z=params['z_star'])
+        new_w = vertwind(grid.Lx, grid.Ly, new_state.vrs['theta_t'], cur_state.vrs['theta_t'], dt, z=params['z_star'])
         mean_w = (cur_w + new_w)/2.
         #print("w: ",np.max(curw)," , ", np.min(w))
         cur_state.vrs['Delta_z'] += k_hour * dt * mean_w
