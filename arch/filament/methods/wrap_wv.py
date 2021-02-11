@@ -28,27 +28,25 @@ def wrap_wv(history, grid, params, alpha_method, order_alpha, F_method, verbose=
     print("      us vs done") if verbose > 2 else None
     
     new_dz = outvar[0]
-    dT_hist = outvar[1] 
+    new_dT_hist = outvar[1] 
     
     #UPDATE OF W ---------------------------------------------------
     k_hour = int(3600/dt)
-    if ((np.floor(cur_state.t/dt)-1)%k_hour==0 ):# k-1 -> k ?
+    if ((np.floor(cur_state.t/dt)-1)%k_hour==0 ):
         cur_w = vertwind(grid.Lx, grid.Ly, cur_state.vrs['theta_t'], pre_state.vrs['theta_t'], dt, z=params['z_star'])
         new_w = vertwind(grid.Lx, grid.Ly, new_state.vrs['theta_t'], cur_state.vrs['theta_t'], dt, z=params['z_star'])
         mean_w = (cur_w + new_w)/2.
-        #print("w: ",np.max(curw)," , ", np.min(w))
         cur_state.vrs['Delta_z'] += k_hour * dt * mean_w
         new_dz += k_hour * dt * mean_w
         
     dT_disp = params['gamma_2'] * cur_state.vrs['Delta_z']
     dT_cloud = params['Delta_Tc'] * ( cur_state.vrs['Delta_z'] > params['Delta_zc'] ) 
-    dT_bb = dT_hist + dT_disp + dT_cloud
-    
+    dT_bb = cur_state.vrs['Delta_T_hist'] + dT_disp + dT_cloud
 
     cur_state.vrs['alpha_us'] = a_us
     cur_state.vrs['alpha_vs'] = a_vs
     
     new_state.vrs['Delta_z'] = new_dz 
-    new_state.vrs['Delta_T_hist'] = dT_hist
+    new_state.vrs['Delta_T_hist'] = new_dT_hist
     
     cur_state.vrs['Delta_T_bb'] = dT_bb
