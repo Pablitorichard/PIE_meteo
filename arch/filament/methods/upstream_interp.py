@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0):
+def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0, **kwargs):
     """
      upstream_interp interpolates a multidimensionnal field F from a 2D grid to 
      to an 'upstream' unstructured mesh defined by the displacements 
