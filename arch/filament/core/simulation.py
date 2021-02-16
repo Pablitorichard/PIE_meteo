@@ -68,11 +68,17 @@ class Simulation():
             # then perform forward
             cpu_time = self.forward()
             cpu_tot_time += cpu_time
+            
+            simu_time = 0
         
         # Print Total and Mean CPU time per method
         for ind, method in enumerate(self.methods):
             print("\n\nTotal CPU time for method ", method.__name__, " = {:.2f}".format(cpu_tot_time[ind]), " seconds") if self.verbose else None
             print("Mean CPU time for method ", method.__name__, " per call = {:.2f}".format(cpu_tot_time[ind]/self.Nt), " seconds") if self.verbose else None
+            simu_time += cpu_tot_time[ind] + cpu_tot_time[ind]/self.Nt
+            
+        print("\n**************************************************\n")
+        print("TOTAL SIMULATION TIME = {:.2f}".format(simu_time), " seconds")
 
     def forward(self):
         cpu_time = np.zeros(len(self.methods))
