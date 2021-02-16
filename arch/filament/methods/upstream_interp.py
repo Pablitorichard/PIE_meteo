@@ -164,7 +164,7 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0, **kwargs):
                 (A30[:,Xf, Yf] + A31[:,Xf, Yf] * Yb + A32[:,Xf, Yf] * Yb**2 + \
                  A33[:,Xf, Yf] * Yb**3) * Xb**3  
     else:
-        raise "Unkwon method for interpolation: " + method
+        raise Exception("Unknown method for interpolation: " + method)
     if dim==1:
         F_int = F_int[0,:,:]
     
