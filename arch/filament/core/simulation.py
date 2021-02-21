@@ -2,6 +2,7 @@ import numpy as np
 from netCDF4 import Dataset
 import os
 import time
+from datetime import datetime
 
 from .history import History
 from .grid import Grid
@@ -11,7 +12,7 @@ from ..test.test_cases import create_results_netcdf
 
 class Simulation():
 
-    def __init__(self, initialCDF, T, Nt, methods, output_folder, save_rate, backup_rate, verbose=0, methods_kwargs=None):
+    def __init__(self, initialCDF, T, Nt, methods, output_folder, save_rate, backup_rate, verbose=0, methods_kwargs=None, name=None):
        
         # store the initial data
         self.history = History.fromCDF(initialCDF)
@@ -38,8 +39,12 @@ class Simulation():
         self.output_folder = output_folder
         self.save_rate = save_rate
         self.backup_rate = backup_rate
-        create_results_netcdf(output_folder + '/results.nc', **self.__dict__)
-        create_results_netcdf(output_folder + '/backup.nc', **self.__dict__) 
+        
+        date = datetime.now()
+        self.name = name if name is not None else date.strftime("%Y_%m_%d_%H:%M:%S")
+        
+        create_results_netcdf(output_folder + '/results_'+self.name+'.nc', **self.__dict__)
+        create_results_netcdf(output_folder + '/backup_'+self.name+'.nc', **self.__dict__) 
 
         # other parameters
         self.verbose = verbose
@@ -56,12 +61,12 @@ class Simulation():
             print("\n\nIteration ", iter_nb, "...") if self.verbose else None
             # first handle saving
             if iter_nb % self.backup_rate == 0:
-                backupCDF = Dataset(self.output_folder + '/backup.nc', 'r+', format='NETCDF4', parallel=False)
+                backupCDF = Dataset(self.output_folder + '/backup_'+self.name+'.nc', 'r+', format='NETCDF4', parallel=False)
                 self.history.save(backupCDF, backup=True)
                 backupCDF.close()
                 print("---> backup refreshed at iteration "+str(iter_nb)) if self.verbose else None
             if iter_nb % self.save_rate == 0:
-                resultsCDF = Dataset(self.output_folder + '/results.nc', 'r+', format='NETCDF4', parallel=False)
+                resultsCDF = Dataset(self.output_folder + '/results_'+self.name+'.nc', 'r+', format='NETCDF4', parallel=False)
                 self.history.save(resultsCDF, backup=False)  
                 resultsCDF.close()  
                 print("---> saved results of iteration "+str(iter_nb)) if self.verbose else None
