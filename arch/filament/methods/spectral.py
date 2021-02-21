@@ -2,13 +2,13 @@ import numpy as np
 
 def geostwind(a, b, thetatp, params, z=0, fourier=False, verbose=0):
     
-    f = 1e-4
+    f       = 1e-4
     theta00 = params['theta_00']
-    g = params['g']
-    Ns = params['N_s']
-    Nt = params['N_t']
-    N = Ns if z>0 else Nt
-    pate = g*(Ns-Nt)/(theta00*Ns*Nt)
+    g       = params['g']
+    Ns      = params['N_s']
+    Nt      = params['N_t']
+    N       = Ns if z>0 else Nt
+    pate    = g*(Ns-Nt)/(theta00*Ns*Nt)
     
     Pa, Pb = thetatp.shape
     
@@ -16,21 +16,19 @@ def geostwind(a, b, thetatp, params, z=0, fourier=False, verbose=0):
     freqx = np.fft.fftfreq(Pa, a/Pa)
     freqy = np.fft.fftfreq(Pb, b/Pb)
     
-    vecFreqX = 2*np.pi*freqx # 1 seule dim 
-    vecFreqY = 2*np.pi*freqy # idem
+    vecFreqX = 2*np.pi*freqx
+    vecFreqY = 2*np.pi*freqy
     
     KmatX, KmatY = np.meshgrid(vecFreqX, vecFreqY)
     Kmat = np.sqrt(KmatX**2 + KmatY**2).T
-    
     Kmat[np.where(Kmat==0)]=float('Inf')
     
     Mat = pate/Kmat if (z==0) else pate/Kmat * np.exp(-N*Kmat/f*np.abs(z))
-    psihat = thetatphat
-
-    psihat *= Mat
+    psihat = thetatphat * Mat
+    
     if fourier:
-        ug = -np.fft.ifft2(psihat*1j*wavevect[:,:,1]).real
-        vg = np.fft.ifft2(psihat*1j*wavevect[:,:,0]).real
+        ug = -np.fft.ifft2(psihat*1j*KmatY.T).real
+        vg = np.fft.ifft2(psihat*1j*KmatX.T).real
     
     else:
         psi = np.fft.ifft2(psihat).real
@@ -41,13 +39,13 @@ def geostwind(a, b, thetatp, params, z=0, fourier=False, verbose=0):
 
 def vertwind(a, b, thetatp, thetatpprev, dt, params, z=0, verbose=0):
     
-    f = 1e-4
+    f       = 1e-4
     theta00 = params['theta_00']
-    g = params['g']
-    Ns = params['N_s']
-    Nt = params['N_t']
-    N = Ns if z>0 else Nt
-    pate = g*(Ns-Nt)/(theta00*Ns*Nt)
+    g       = params['g']
+    Ns      = params['N_s']
+    Nt      = params['N_t']
+    N       = Ns if z>0 else Nt
+    pate    = g*(Ns-Nt)/(theta00*Ns*Nt)
     
     Pa, Pb = thetatp.shape
     
@@ -56,32 +54,31 @@ def vertwind(a, b, thetatp, thetatpprev, dt, params, z=0, verbose=0):
         
     freqx = np.fft.fftfreq(Pa, a/Pa)
     freqy = np.fft.fftfreq(Pb, b/Pb)
-    wavevect = np.array([[(2*np.pi*m,2*np.pi*n) for n in freqy] for m in freqx])
     
-    vecFreqX = 2*np.pi*freqx # 1 seule dim 
-    vecFreqY = 2*np.pi*freqy # idem
+    vecFreqX = 2*np.pi*freqx
+    vecFreqY = 2*np.pi*freqy
     
     KmatX, KmatY = np.meshgrid(vecFreqX, vecFreqY)
     Kmat = np.sqrt(KmatX**2 + KmatY**2).T
     Kmat[np.where(Kmat==0)]=float('Inf') # set to inf. null wavenumbers
     
-    psihat = thetatphat
-    psiprevhat = thetatpprevhat
     Mat = pate/Kmat if (z==0) else pate/Kmat * np.exp(-N*Kmat/f*np.abs(z))
-    psihat       *= Mat
-    psiprevhat   *= Mat
+    psihat     = thetatphat * Mat
+    psiprevhat = thetatpprevhat * Mat
+    
     Kmat[np.where(np.isinf(Kmat))]=0 # set inf. elements back to 0
+    
     thetazhat     = theta00/g*(-np.sign(z))*N*Kmat*psihat
     thetazprevhat = theta00/g*(-np.sign(z))*N*Kmat*psiprevhat
 
-    ug = -np.fft.ifft2(psihat*1j*wavevect[:,:,1]).real
-    vg = np.fft.ifft2(psihat*1j*wavevect[:,:,0]).real
+    ug = -np.fft.ifft2(psihat*1j*KmatY.T).real
+    vg =  np.fft.ifft2(psihat*1j*KmatX.T).real
     
     thetaz = np.fft.ifft2(thetazhat).real
     thetazprev = np.fft.ifft2(thetazprevhat).real
     dtthetaz = (thetaz-thetazprev)/dt
-    dxthetaz = np.fft.ifft2(thetazhat*1j*wavevect[:,:,0]).real
-    dythetaz = np.fft.ifft2(thetazhat*1j*wavevect[:,:,1]).real
+    dxthetaz = np.fft.ifft2(thetazhat*1j*KmatX.T).real
+    dythetaz = np.fft.ifft2(thetazhat*1j*KmatY.T).real
     
     w = -dtthetaz - ug*dxthetaz - vg*dythetaz
     w *= g/(N**2 * theta00)
