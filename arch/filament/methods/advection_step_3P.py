@@ -22,7 +22,7 @@ def advection_step_3P(alpha_u_minus, alpha_v_minus, field_minus,
          d2[np.where(d2>1)] = 1
          f = a * d * d2**B
          kappa = f * dt / (1 + f * dt)
-         print("kappa: ", np.mean(kappa)," , ", np.min(kappa)," , ", np.max(kappa))
+         print("kappa: ", np.mean(kappa)," , ", np.min(kappa)," , ", np.max(kappa)) if verbose > 2 else None 
         
     # ITERATIVE ESTIMATION OF THE DISPLACEMENT-------------------------------
     # The displacement alpha is estimated iteratively by interpolating the wind 
