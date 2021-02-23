@@ -16,11 +16,11 @@ class History():
             raise 'Empty CDF while initialising History'
 
 
-    def save(self, netCDF_file, backup=False):
+    def save(self, netCDF_file, backup=False, saved_variables=None):
         if not backup:
         # the oldest state is supposed to be completely known
         # thus it is this one we choose to export
-            self.state_list[0].save(netCDF_file, backup=False)
+            self.state_list[0].save(netCDF_file, backup=False, saved_vrs=saved_variables)
         else:
             for ind, state in enumerate(self.state_list):
                 state.save(netCDF_file, backup=True, k=ind)
@@ -35,8 +35,3 @@ class History():
             self.size -= 1
         except Exception as error:
             raise error
-
-    #def forward(self, method):
-    #    new_state = method(self)
-    #    self.state_list.append(new_state)
-    #    self.state_list.pop(0)
