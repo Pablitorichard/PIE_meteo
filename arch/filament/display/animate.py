@@ -76,12 +76,12 @@ def var2str(var_name):
         'vt':r'$v_t \ (m.s^{-1})$',
         'theta_t':r"$\theta^{'}_{tp} \ (K)$",
         'us':r'$u_s \ (m.s^{-1})$',
-        'v_s':r'$v_s \ (m.s^{-1})$',
+        'vs':r'$v_s \ (m.s^{-1})$',
         'w':r'$w \ (m.s^{-1})$',
         'Delta_z':r'$\Delta z \ (m)$',
         'Delta_T_bb':r'$\Delta T_{bb} \ (K)$',
         'Delta_T_hist':r'$\Delta T_{bb}^{hist} \ (K)$'
     }
     
-    return switcher_name.get(var_name, "Invalid Variable")
+    return switcher_name.get(var_name, var_name)
 
