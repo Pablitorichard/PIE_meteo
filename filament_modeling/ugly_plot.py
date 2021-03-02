@@ -3,7 +3,7 @@ from netCDF4 import Dataset
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 
-def ugly_plot(path, lvl_num=5, colormap='Greys', ratio=8):
+def ugly_plot(path, lvl_num=5, colormap='bone', ratio=8):
     
     #Unpack NetCDF
     handle = Dataset(path, 'r+',format='NETCDF4')  
@@ -102,7 +102,7 @@ def ugly_plot(path, lvl_num=5, colormap='Greys', ratio=8):
     
 
 
-def ugly_WV(path, lvl_num=5, colormap='Greys', ratio=8):
+def ugly_WV(path, lvl_num=5, colormap='bone_r', ratio=8):
     
     #Unpack NetCDF
     handle = Dataset(path, 'r+',format='NETCDF4')  
@@ -199,7 +199,7 @@ def ugly_WV(path, lvl_num=5, colormap='Greys', ratio=8):
     handle.close()
     plt.show()
     
-def ugly_Delta_z(path, lvl_num=10, colormap='Greys', ratio=8):
+def ugly_Delta_z(path, lvl_num=10, colormap='bone', ratio=8):
     
     #Unpack NetCDF
     handle = Dataset(path, 'r+',format='NETCDF4')  

@@ -32,8 +32,8 @@ def advection_driver(path, pseudo_spectral_wind=1,
     dy=handle.dx
     
     
-    k_hour = int(3600/dt)
-    #k_hour = 4
+    #k_hour = int(3600/dt)
+    k_hour = 2
     
     ut_minus = handle['ut'][:,:,0]  
     vt_minus = handle['vt'][:,:,0]
