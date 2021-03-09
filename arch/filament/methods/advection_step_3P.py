@@ -19,7 +19,7 @@ def advection_step_3P(alpha_u_minus, alpha_v_minus, field_minus,
              np.square( (np.roll(u,-1,1) - np.roll(u,1,1)) / (2 * dy)   + \
                         (np.roll(v,-1,0) - np.roll(v,1,0)) / (2 * dx) ) )
          d2 = (d.copy())/d0
-         d2[np.where(d2>1)] = 1
+         d2[np.where(d2<1)] = 1
          f = a * d * d2**B
          kappa = f * dt / (1 + f * dt)
          print("kappa: ", np.mean(kappa)," , ", np.min(kappa)," , ", np.max(kappa)) if verbose > 2 else None 

@@ -1,29 +1,36 @@
 import numpy as np
 
 
-def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0, **kwargs):
+def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0, ho=0.15,
+                    **kwargs):
+    """ upstream_interp interpolates a multidimensionnal field F from a 2D grid to 
+    an 'upstream' unstructured mesh defined by the displacements 
+    alpha_x, alpha_y: If F were a continuous field, we would have:
+        F_int(x,y) = F(x-alpha, y-alpha)
+
+    :param alpha_x: a two dimensional field of displacement along the first dimension 
+    :type alpha_x: ndarray
+    :param alpha_y: a two dimensional field of displacement along the second dimension 
+    :type alpha_y: ndarray
+    :param F: 2D-Field to be advected. A vectorial field can be advected (the 
+    X and Y dimension should come second and third )
+    :type F: ndarray
+    :param method: method used for the interpolation: "nearest", "linear", or 
+    "bicubic". Defaults to 'linear'
+    :type method: string, optional
+    :param verbose: a scalar between 0 and 2. The higher the number, the more 
+    prints. Defaults to 0
+    :type verbose: int, optional
+    :param ho: Distance around grid points where additional diffusion is added with 
+    the 'damping' method. Defaults to 0.15.
+    :type ho: int, optional
+    :raises "Unknown method for interpolation: ": Invalid string as a method 
+    for interpolation
+    :return: F_int: Advected field. 
+    :rtype: ndarray
     """
-     upstream_interp interpolates a multidimensionnal field F from a 2D grid to 
-     to an 'upstream' unstructured mesh defined by the displacements 
-     alpha_u, alpha_v: If F were a continuous field, we would have:
-         F_int(x,y) = F(x-alpha, y-alpha)
-     Inputs:
-         - alpha_x, double(Nx,Ny): Displacement to apply to the x coordinate
-         of each grid point to get the upstream mesh
 
-         - alpha_x, double(Nx,Ny): Displacement to apply to the x coordinate
-         of each grid point to get the upstream mesh
 
-         - F, double(Nx,Ny,dim): Multidimensional field on a 2D grid of 
-         dimensions Nx,Ny
-
-         - method, string: Interpolation method, set by default to 'linear'. 
-         This is the only available option right now.
-
-    Output:
-        - F_int, double(Nx,Ny,dim) : Value of the field F interpolated on the
-         upstream mesh. 
-    """
     print("         upstream_interp called with method: ", method) if verbose > 2 else None
 
     if len(F.shape)==2:
@@ -66,7 +73,30 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0, **kwargs):
                    + Xc * (1 - Yc) * np.roll(Ft, 1, 1) \
                    + (1 - Xc) * (1 - Yc) * Ft \
                    + (1 - Xc) * Yc * np.roll(Ft, 1, 2) 
-                    
+                   
+    elif method=='diffusive':
+        [X, Y] = np.mgrid[0:Nx,0:Ny] 
+        
+        Xi = X - alpha_x
+        Yi = Y - alpha_y
+        
+        Xt = np.ceil(Xi).astype(int)
+        Yt = np.ceil(Yi).astype(int)
+        
+        Xc = Xt - Xi
+        Yc = Yt - Yi
+        
+        Xt = np.mod(Xt, Nx)
+        Yt = np.mod(Yt, Ny)
+        
+        Ft = F[:, Xt, Yt]
+        
+        F_int = Xc * Yc * np.roll(Ft, (1, 1), (1,2)) \
+                   + Xc * (1 - Yc) * np.roll(Ft, 1, 1) \
+                   + (1 - Xc) * (1 - Yc) * Ft \
+                   + (1 - Xc) * Yc * np.roll(Ft, 1, 2) 
+        
+
     elif method=='bicubic':
          # For a given point, bi-cubic interpolation fits the value of the 
         # four surrounding points as well as the slope at each of these 
