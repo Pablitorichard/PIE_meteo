@@ -55,8 +55,8 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0, ho=0.15,
     elif method=='linear':
         [X, Y] = np.mgrid[0:Nx,0:Ny] 
         
-        Xi = X - alpha_x
-        Yi = Y - alpha_y
+        Xi = np.mod(X - alpha_x, Nx - 1)
+        Yi = np.mod(Y - alpha_y, Ny - 1)
         
         Xt = np.ceil(Xi).astype(int)
         Yt = np.ceil(Yi).astype(int)
@@ -64,15 +64,11 @@ def upstream_interp(alpha_x, alpha_y, F, method='linear', verbose=0, ho=0.15,
         Xc = Xt - Xi
         Yc = Yt - Yi
         
-        Xt = np.mod(Xt, Nx)
-        Yt = np.mod(Yt, Ny)
-        
-        Ft = F[:, Xt, Yt]
-        
-        F_int = Xc * Yc * np.roll(Ft, (1, 1), (1,2)) \
-                   + Xc * (1 - Yc) * np.roll(Ft, 1, 1) \
-                   + (1 - Xc) * (1 - Yc) * Ft \
-                   + (1 - Xc) * Yc * np.roll(Ft, 1, 2) 
+        F_int[:, X, Y] = Xc * Yc * F[:, Xt - 1, Yt -1] \
+                   + Xc * (1 - Yc) * F[:, Xt - 1, Yt] \
+                   + (1 - Xc) * (1 - Yc) * F[:, Xt, Yt] \
+                   + (1 - Xc) * Yc * F[:, Xt, Yt - 1] 
+                   
                    
     elif method=='diffusive':
         [X, Y] = np.mgrid[0:Nx,0:Ny] 
