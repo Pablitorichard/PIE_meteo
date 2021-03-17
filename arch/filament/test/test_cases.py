@@ -106,7 +106,7 @@ def create_initial_netcdf(path, Lx, Ly, Nx, Ny, dt, nb_state):
     return handle
 
 
-def v_stripe_test(path, Lx, Ly, Nx, Ny, dt, nb_state, dX, dY):
+def v_stripe_test(path, Lx, Ly, Nx, Ny, dt, nb_state, dX, dY, depth=15):
     
     handle = create_initial_netcdf(path, Lx, Ly, Nx, Ny, dt, nb_state)
 
@@ -115,7 +115,6 @@ def v_stripe_test(path, Lx, Ly, Nx, Ny, dt, nb_state, dX, dY):
     #Bubble creation
     [X,Y] = np.mgrid[0:Nx,0:Ny]
     F = np.zeros((Nx, Ny)) #handle.theta_00*np.ones((Nx, Ny))
-    depth = 15             #- 2800 * (handle.N_t*handle.N_s*handle.theta_00)/ handle.g
 
     F[dX : Nx-dX, Ny//2 - dY : Ny//2 + dY] = \
         F[dX : Nx-dX, Ny//2 - dY : Ny//2 + dY] +\
